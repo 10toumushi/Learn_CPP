@@ -1,33 +1,57 @@
 #include <iostream>
 #include <vector>
 #include <new>
+#include <climits>
 #include "BasicClass.h"
 #include "TestFunction.h"
+
 using namespace std;
-#include <climits>
-
-void g(Base* b) {
-    b->f();
-}
 
 
-void g(Sub* s) {
-    s->f();
-}
-
-void g(Base b) {
-    b.f();
-}
-
-// void g(Sub s) {
-//     s.f();
-// }
-
+//////// private ////////
 int TestFunction::foo(int a, int b) {return a + b;}
-int TestFunction::ber(int a, int b) {return a - b;}
 void TestFunction::foo(Ref& a) {a.num_ = a.num_ + 1;}
+int TestFunction::ber(int a, int b) {return a - b;}
+
+void TestFunction::FuncArgvBase(Base b) {
+    b.FuncWithVirtual();
+    b.FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSub(Sub s) {
+    s.FuncWithVirtual();
+    s.FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSub2(Sub2 s2) {
+    s2.FuncWithVirtual();
+    s2.FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvBasePtr(Base* b) {
+    b->FuncWithVirtual();
+    b->FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSubPtr(Sub* s) {
+    s->FuncWithVirtual();
+    s->FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSub2Ptr(Sub2* s2) {
+    s2->FuncWithVirtual();
+    s2->FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvBaseRef(Base& b) {
+    b.FuncWithVirtual();
+    b.FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSubRef(Sub& s) {
+    s.FuncWithVirtual();
+    s.FuncWithoutVirtual();
+};
+void TestFunction::FuncArgvSub2Ref(Sub2& s2) {
+    s2.FuncWithVirtual();
+    s2.FuncWithoutVirtual();
+};
 
 
+//////// public ////////
 void TestFunction::CheckConstractorAndDestractor() {
     cout << endl;
     cout << "-------- Base class object generated. --------" << endl;
@@ -316,22 +340,82 @@ void TestFunction::CheckDynamicArrayOfObject() {
     cout << endl;
 
 
-    //////// 引数付きコンストラクタを用いたクラス型配列の動的確保3 ////////
-    // placement new を使用
-    Base* obj_p3 = reinterpret_cast<Base*>(operator new(sizeof(Base) * 3));
-    for(int i = 0; i < 3; i++){
-        new(obj_p3+i) Base(i+6);
-        obj_p3[i].GetInt();
-    }
+    // //////// 引数付きコンストラクタを用いたクラス型配列の動的確保3 ////////
+    // // placement new を使用
+    // Base* obj_p3 = reinterpret_cast<Base*>(operator new(sizeof(Base) * 3));
+    // for(int i = 0; i < 3; i++){
+    //     new(obj_p3+i) Base(i+6);
+    //     obj_p3[i].GetInt();
+    // }
 
-    // この記述がないと、各要素のポインタが指すアドレスに作成したオブジェクトが破棄されない
-    for(int i=0; i<3; i++){
-        obj_p3[i].~Base();
-    }
+    // // この記述がないと、各要素のポインタが指すアドレスに作成したオブジェクトが破棄されない
+    // for(int i=0; i<3; i++){
+    //     obj_p3[i].~Base();
+    // }
 
-    // 確保したメモリ領域を解放
-    operator delete(obj_p3);
+    // // 確保したメモリ領域を解放
+    // operator delete(obj_p3);
 
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckCopyConstractor() {
+    cout << endl;
+    cout << "-------- Check copy constractor --------" << endl;
+
+    struct A {
+        A() {cout << "Class A generated." << endl;}
+        A(const A&) {cout << "Class A copied." << endl;}    // コピーコンストラクタ
+        ~A() {cout << "Class A deleted" << endl;}
+    };
+    auto Func = [](A a) { return a; };
+
+    // 直接初期化でデフォルトコンストラクタの呼び出し
+    A a1;
+    cout << endl;
+
+    // 直接初期化でコピーコンストラクタの呼び出し
+    A a2(a1);
+    cout << endl;
+
+    // コピー初期化でデフォルトコンストラクタの呼び出し
+    A a3 = A();
+    cout << endl;
+
+    // 直接初期化でコピーコンストラクタの呼び出し
+    A a4 = a1;
+    cout << endl;
+
+    // 関数内での一時オブジェクトによるコピーコンストラクタの呼び出し
+    // 関数からの戻り一時オブジェクトによるコピーコンストラクタの呼び出し
+    Func(a1);
+    cout << endl;
+
+    // 関数内での一時オブジェクトによるデフォルトコンストラクタの呼び出し
+    // 関数からの戻り一時オブジェクトによるコピーコンストラクタの呼び出し
+    Func(A());
+    cout << endl;
+}
+
+
+void TestFunction::CheckStaticMember() {
+    cout << endl;
+    cout << "-------- Check static member --------" << endl;
+
+    Base obj1, obj2;
+
+    Base::StaticBaseFunc();    // 一般的な呼び方
+    obj1.StaticBaseFunc();     // 一般的な呼び方ではないが、文法的にはOK
+    obj2.StaticBaseFunc();     // static変数は共有されているので、同じ値が呼び出される
+
+    Base::s_base_int_ = 1;    // 一般的な呼び方
+    Base::StaticBaseFunc();
+    obj1.s_base_int_++;       // 一般的な呼び方ではないが、文法的にはOK
+    Base::StaticBaseFunc();
+    obj2.s_base_int_++;       // static変数は共有されているので、同じ変数に対する操作になる
+    Base::StaticBaseFunc();
 
     cout << endl;
 }
@@ -361,7 +445,7 @@ void TestFunction::CheckObjectReference() {
     cout << "m = " << m << endl;
     cout << "n = " << n << endl;
 
-    // 配列の参照
+    //////// 配列の参照 ////////
     cout << endl;
     int Array[] = {1,2,3,4,5};
     int (&refA)[5] = Array;
@@ -371,7 +455,8 @@ void TestFunction::CheckObjectReference() {
     cout << "Array[3] = " << Array[3] << endl;
     cout << "refA[3]  = " << refA[3] << endl;
 
-    // 関数への参照
+
+    //////// 関数への参照 ////////
     cout << endl;
     // グローバル空間に定義したberはOKだが、クラスのメンバ関数にするとNG
     // static メンバ関数にすればOK
@@ -389,19 +474,233 @@ void TestFunction::CheckObjectReference2() {
 
     //////// 参照渡し ////////
     cout << endl;
-    Ref a;
-    a.num_ = 1;
-    std::cout << "num_ = " << a.num_ << std::endl;
-    foo(a);    // オブジェクトをそのまま渡す
-    std::cout << "num_ = " << a.num_ << std::endl;
+    Ref obj;
+    obj.num_ = 1;
+    std::cout << "num_ = " << obj.num_ << std::endl;
+    foo(obj);    // オブジェクトをそのまま渡す
+    std::cout << "num_ = " << obj.num_ << std::endl;
+
 
     //////// 参照返し ////////
-    cout << "num2_ = " << a.GetRefNum() << endl;
+    cout << "num2_ = " << obj.GetRefNum() << endl;
 
     // 関数の戻り値が private なメンバ変数の参照であるため、代入操作ができる。
-    a.GetRefNum() = 20;
+    obj.GetRefNum() = 20;
 
-    cout << "num2_ = " << a.GetRefNum() << endl;
+    cout << "num2_ = " << obj.GetRefNum() << endl;
+    cout << endl;
+}
+
+
+void TestFunction::CheckInheritance() {
+    cout << "-------- Check object inheritance --------" << endl;
+    cout << endl;
+
+    class A {
+    public:
+        A() {cout << "A" << endl;}
+    };
+
+    class B {
+    public:
+        B() {cout << "B" << endl;}
+    };
+
+    class C : public B, public A {
+    public:
+        int a_;
+        int b_;
+
+        // 初期化子リストに記載した順序は無視される
+        // `B()`, `A()`, `a(1)`, `b(a + 1)`の順番で呼び出される
+        // コンパイル時に、-Wall オプションを有効にすると、
+        // 初期化リストの記載順と、実際の初期化順が合っていない場合はwarningがでる。
+        // C() : b_(a_ + 1), a_(1) , A() , B() {
+        C() : B(), A(), a_(1), b_(a_ + 1) {
+            cout << "a = " << a_ << endl;
+            cout << "b = " << b_ << endl;
+        }
+    };
+
+    C obj;
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckInheritance2() {
+    cout << "-------- Check object inheritance 2 --------" << endl;
+    cout << endl;
+
+    Sub sub;
+    sub.PrintBaseMember();
+    sub.PrintSubMember();
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckSubClassUpcast() {
+    cout << "-------- Check sub class upcast --------" << endl;
+    cout << endl;
+
+    //////// 基底クラス型ポインタへのアップキャスト ////////
+    //// ポインタへの代入
+    Base* base1;
+    Sub   sub1;
+    sub1.BaseFunc();    // 派生クラスは基底クラスメンバも使える
+    sub1.SubFunc();
+
+    base1 = &sub1;           // 基底クラスのポインタへ代入
+    base1->BaseFunc();       // 基底クラスメンバは使える
+    // base1->SubFunc();     // 派生クラスメンバは使用できない
+
+    //// 動的メモリで生成
+    cout << endl;
+    Base* base2 = new Sub;
+    base2->BaseFunc();      // 基底クラスメンバは使える
+    // base2->SubFunc();    // 派生クラスメンバは使用できない
+    delete base2;
+
+
+    //////// 基底クラス型参照へのアップキャスト ////////
+    cout << endl;
+    Sub sub3;
+    Base& base3 = sub3;
+    base3.BaseFunc();       // 基底クラスメンバは使える
+    // base3.SubFunc();     // 派生クラスメンバは使用できない
+
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckHiding() {
+    cout << "-------- Check hiding --------" << endl;
+    cout << endl;
+
+    Base base;
+    Sub  sub;
+    std::string str = "test";
+
+    cout << endl;
+    base.Print(1);
+    // sub.Print(1);    // 隠蔽されているので使用できない
+    sub.Print(str);
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckOverride() {
+    cout << "-------- Check function override --------" << endl;
+    cout << endl;
+
+    Sub sub;
+    cout << endl;
+
+    //////// 値渡し ////////
+    // スライシング発生
+    // 値渡しでは、一時オブジェクトの生成・破棄も行われる
+    cout << "---- Value ----" << endl;
+    FuncArgvBase(sub);
+    cout << endl;
+
+
+    //////// ポインタ渡し ////////
+    // ポインタ渡しの場合、仮想関数は派生クラスのものが呼び出される。
+    cout << "---- Pointer ----" << endl;
+    FuncArgvBasePtr(&sub);
+    cout << endl;
+
+
+    //////// 参照渡し ////////
+    // 参照渡しの場合、仮想関数は派生クラスのものが呼び出される。
+    cout << "---- Reference ----" << endl;
+    FuncArgvBaseRef(sub);
+    cout << endl;
+
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckObjectSlicing() {
+    cout << "-------- Check object slicing --------" << endl;
+    cout << endl;
+
+    //////// オブジェクトへの代入 ////////
+    Base base(100);
+    Sub  sub(200);
+    base = sub;    // スライシング発生
+
+    // 基底クラスのメンバは普通に使用できる
+    base.BaseFunc();
+    cout << "public_base_int_ = " << base.public_base_int_ <<endl;
+
+    // スライシングにより、派生クラスのメンバは使用できない
+    // cout << "public_sub_int_ = " << base.public_sub_int_ <<endl;
+    // base.SubFunc();
+
+    // 呼び出している基底クラスのメンバは、baseオブジェクトのものではなく
+    // **subオブジェクトが内包している基底クラスのメンバである**。
+    base.GetInt();
+    sub.GetInt();
+
+
+    //////// 関数への代入 ////////
+    // 仮想関数でも基底クラスのものが呼び出される。
+    cout << endl;
+    FuncArgvBase(sub);
+
+    cout << endl;
+}
+
+
+void TestFunction::CheckMultiInheritance() {
+    cout << endl;
+    cout << "-------- Check multi inheritance --------" << endl;
+
+    class Base {
+    protected:
+        int base_int_ = 1;
+    public:
+        Base(void) {cout << "Base class generated." << endl;}
+        virtual ~Base(void) {cout << "Base class deleted." << endl;}
+        void BaseFunc(void) {cout << "Function from Base class." << endl;}
+        void virtual func() {cout << "Base" << endl;}
+    };
+
+    class Sub1 : public virtual Base {
+    public:
+        Sub1(void) {cout << "Sub1 class generated." << endl;}
+        ~Sub1(void) {cout << "Sub1 class deleted." << endl;}
+        void SubFunc(void) {cout << "Function from Sub1 class." << endl;}
+        void GetIntFromSub1() {cout << "base_int_ = " << base_int_ << endl;}
+        // void func() { cout << "Sub1" << endl; }
+    };
+
+    class Sub2 : public virtual Base {
+    public:
+        Sub2(void) {cout << "Sub2 class generated." << endl;}
+        ~Sub2(void) {cout << "Sub2 class deleted." << endl;}
+        void SubFunc(void) {cout << "Function from Sub2 class." << endl;}
+        void GetIntFromSub2() {cout << "base_int_ = " << base_int_ << endl;}
+        // void func() { cout << "Sub2" << endl; }
+    };
+
+    class Sub3 : public Sub1, public Sub2 {
+    public:
+        Sub3(void) {cout << "Sub3 class generated." << endl;}
+        ~Sub3(void) {cout << "Sub3 class deleted." << endl;}
+    };
+
+    Sub3 obj;
+    obj.BaseFunc();         // 仮想継承すればBaseクラスのメンバ関数を呼び出せるようになる
+    // obj.SubFunc();       // 仮想継承しても、Sub1, Sub2で同名の関数は曖昧なまま
+    obj.Sub2::SubFunc();    // スコープ解決演算子で、アクセス経路を指定すればOK
+
+
     cout << endl;
 }
 

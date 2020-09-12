@@ -1,5 +1,4 @@
 #include <iostream>
-#include "BasicClass.h"
 #include "TestFunction.h"
 using namespace std;
 
@@ -23,37 +22,33 @@ int main(int argc, char **argv) {
     
     obj.CheckNewAndDelete();
 
-    // CheckNewHandler();
+    // obj.CheckNewHandler();
 
     obj.CheckOperatorNewAndDelete();
 
-    // obj.CheckDynamicArrayOfObject();
+    obj.CheckDynamicArrayOfObject();
 
-    // CheckObjectReference();
+    obj.CheckCopyConstractor();
 
-    // CheckObjectReference2();
+    // obj.CheckStaticMember();
 
+    // obj.CheckObjectReference();
 
-    // cout << "-------- Override --------" << endl;
-    // obj_b.Getter();
-    // obj_b.f();
-    // obj_s.f();
-    // g(&obj_b);
-    // g(&obj_s);
-    // cout << endl;
+    // obj.CheckObjectReference2();
 
-    // obj_b.PrintBaseMember();
-    // obj_s.PrintSubMember();
+    // obj.CheckInheritance();
 
-    // cout << "-------- Slicing --------" << endl;
-    // g(obj_b);
-    // g(obj_s);
-    // cout << endl;
+    // obj.CheckInheritance2();
 
+    // obj.CheckSubClassUpcast();
 
+    // obj.CheckHiding();
 
-    // Base* p_b = new Base;
+    // obj.CheckOverride();
 
+    // obj.CheckObjectSlicing();
+
+    // obj.CheckMultiInheritance();
 
     cout << endl << "-------- Program end. --------" << endl;
 }
